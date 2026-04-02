@@ -13,21 +13,15 @@ class DashboardController extends Controller
     {
         // CARD UTAMA
         $totalKunjungan = RekamMedis::count();
-        $jumlahSiswa    = Siswa::count();
-        $jumlahObat     = Obat::count();
-        $jumlahJadwal   = JadwalPemeriksaan::count();
+        $jumlahSiswa = Siswa::count();
+        $jumlahObat = Obat::count();
+        $jumlahJadwal = JadwalPemeriksaan::count();
 
         // DEFAULT (buat petugas)
-        $dataDashboard = compact(
-            'totalKunjungan',
-            'jumlahSiswa',
-            'jumlahObat',
-            'jumlahJadwal'
-        );
+        $dataDashboard = compact('totalKunjungan', 'jumlahSiswa', 'jumlahObat', 'jumlahJadwal');
 
         // KHUSUS ADMIN → TAMBAH GRAFIK
         if (auth()->user()->role === 'admin') {
-
             // 🔹 Grafik kunjungan 6 bulan terakhir
             $kunjunganPerBulan = RekamMedis::selectRaw('MONTH(tanggal) as bulan, COUNT(*) as total')
                 ->where('tanggal', '>=', now()->subMonths(6))
@@ -36,11 +30,11 @@ class DashboardController extends Controller
                 ->get();
 
             $labels = [];
-            $data   = [];
+            $data = [];
 
             foreach ($kunjunganPerBulan as $row) {
                 $labels[] = Carbon::create()->month($row->bulan)->locale('id')->isoFormat('MMMM');
-                $data[]   = $row->total;
+                $data[] = $row->total;
             }
 
             // 🔹 Grafik pemakaian obat
@@ -52,16 +46,26 @@ class DashboardController extends Controller
                 ->get();
 
             $labelObat = $obatTerpakai->pluck('obat.nama_obat');
-            $dataObat  = $obatTerpakai->pluck('total');
+            $dataObat = $obatTerpakai->pluck('total');
 
-            $dataDashboard = array_merge($dataDashboard, compact(
-                'labels',
-                'data',
-                'labelObat',
-                'dataObat'
-            ));
+            $dataDashboard = array_merge($dataDashboard, compact('labels', 'data', 'labelObat', 'dataObat'));
         }
 
         return view('dashboard.admin', $dataDashboard);
+    }
+
+    public function apiIndex()
+    {
+        $totalKunjungan = RekamMedis::count();
+        $jumlahSiswa = Siswa::count();
+        $jumlahObat = Obat::count();
+        $jumlahJadwal = JadwalPemeriksaan::count();
+
+        return response()->json([
+            'totalKunjungan' => $totalKunjungan,
+            'jumlahSiswa' => $jumlahSiswa,
+            'jumlahObat' => $jumlahObat,
+            'jumlahJadwal' => $jumlahJadwal,
+        ]);
     }
 }

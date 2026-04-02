@@ -47,10 +47,10 @@
                                             {{-- Aksi ADMIN --}}
                                             @if (auth()->user()->role === 'admin')
                                                 <td class="text-center">
-                                                    <a href="{{ route('backend.kelas.edit', $data->id) }}"
+                                                    {{-- <a href="{{ route('backend.kelas.edit', $data->id) }}"
                                                         class="btn btn-success btn-sm" title="Edit">
                                                         <i class="bx bx-edit"></i>
-                                                    </a>
+                                                    </a> --}}
 
                                                     <form action="{{ route('backend.kelas.destroy', $data->id) }}"
                                                         method="POST" class="d-inline"

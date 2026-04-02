@@ -1,20 +1,17 @@
 <?php
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens; // tambahkan kode ini
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens; // tambahkan kode ini
 
     /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
+     * Mass assignable
      */
     protected $fillable = [
         'name',
@@ -25,9 +22,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
+     * Hidden attributes
      */
     protected $hidden = [
         'password',
@@ -35,9 +30,7 @@ class User extends Authenticatable
     ];
 
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Casts
      */
     protected function casts(): array
     {
@@ -47,16 +40,29 @@ class User extends Authenticatable
         ];
     }
 
-    //helper method untuk mengecek role
-    public function isAdmin()
+    /* =====================
+     | ROLE HELPERS
+     |=====================*/
+
+    public function isAdmin(): bool
     {
         return $this->role === 'admin';
     }
 
-    public function isPetugas()
+    public function isPetugas(): bool
     {
         return $this->role === 'petugas';
     }
+
+    public function isSiswa(): bool
+    {
+        return $this->role === 'siswa';
+    }
+
+    /* =====================
+     | RELATIONS
+     |=====================*/
+
     public function logAktivitas()
     {
         return $this->hasMany(LogAktivitas::class);

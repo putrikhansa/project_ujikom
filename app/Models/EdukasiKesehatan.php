@@ -31,11 +31,14 @@ class EdukasiKesehatan extends Model
     /**
      * Relasi ke Kategori
      */
-    public function kategori()
+    /**
+     * Relasi ke Kategori
+     * Saya sarankan ganti nama fungsi ini jadi kategoriEdukasi agar cocok dengan Controller
+     */
+    public function kategoriEdukasi()
     {
         return $this->belongsTo(KategoriEdukasi::class, 'kategori_id');
     }
-
     /**
      * Relasi ke User (Penulis)
      */

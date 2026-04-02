@@ -72,7 +72,7 @@
                                                 </td>
                                                 <td>
                                                     <span
-                                                        class="label label-primary">{{ $item->kategori->nama_kategori }}</span>
+                                                        class="label label-primary">{{ $item->kategoriEdukasi->nama_kategori }}</span>
                                                 </td>
                                                 <td>{{ $item->penulis->name }}</td>
                                                 <td class="text-center">

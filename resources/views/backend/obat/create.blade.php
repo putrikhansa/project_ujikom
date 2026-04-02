@@ -3,7 +3,7 @@
 @section('content')
     <div class="container-fluid py-4">
         <div class="row justify-content-center">
-            <div class="col-md-10">
+            <div class="col-md-12">
                 <div class="card shadow-sm">
                     <div class="card-header bg-light fw-semibold">
                         <i class="bi bi-capsule me-1"></i> Tambah Obat

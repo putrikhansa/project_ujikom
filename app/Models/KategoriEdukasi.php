@@ -8,7 +8,12 @@ class KategoriEdukasi extends Model
 {
     use HasFactory;
 
-    protected $table = 'kategori_edukasi';
-
+    protected $table    = 'kategori_edukasi';
     protected $fillable = ['nama_kategori'];
+
+    // Tambahkan ini:
+    public function edukasiKesehatan()
+    {
+        return $this->hasMany(EdukasiKesehatan::class, 'kategori_edukasi_id');
+    }
 }

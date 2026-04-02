@@ -49,7 +49,24 @@ Route::middleware('auth')->group(function () {
 | BACKEND (AUTH REQUIRED)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth')
+/*
+|--------------------------------------------------------------------------
+| FRONTEND (PUBLIC)
+|--------------------------------------------------------------------------
+*/
+Route::get('/', [FrontController::class, 'index'])->name('frontend');
+// Pindahkan ke sini agar rute ini bersifat PUBLIK (tidak butuh login & tidak ada prefix backend)
+Route::get('/semua-edukasi', [FrontController::class, 'indexEdukasi'])->name('edukasi.indexUser');
+Route::get('/edukasi/{id}', [FrontController::class, 'showEdukasi'])->name('edukasi.show');
+// Halaman daftar stok obat untuk siswa
+Route::get('/stok-obat', [FrontController::class, 'daftarObat'])->name('obat.frontend');
+
+/*
+|--------------------------------------------------------------------------
+| BACKEND (AUTH REQUIRED)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'role'])
     ->prefix('backend')
     ->name('backend.')
     ->group(function () {
@@ -58,9 +75,11 @@ Route::middleware('auth')
         Route::resource('kategori_edukasi', KategoriEdukasiController::class)
             ->only(['index', 'create', 'store', 'destroy']);
 
-        // 2. EDUKASI KESEHATAN
+        // 2. EDUKASI KESEHATAN (Internal Admin)
         Route::resource('edukasi', EdukasiKesehatanController::class);
-        Route::patch('/backend/edukasi/{id}/toggle-status', [EdukasiKesehatanController::class, 'toggleStatus'])->name('edukasi.toggle');
+        Route::patch('edukasi/{id}/toggle-status', [EdukasiKesehatanController::class, 'toggleStatus'])->name('edukasi.toggle');
+
+        // JANGAN TARUH INDEX USER DI SINI JIKA INGIN DIAKSES PUBLIK
 
         // 3. ADMIN ONLY - Menggunakan alias 'admin' (Daftarkan dulu di bootstrap/app.php)
         Route::middleware('admin')->group(function () {
@@ -82,6 +101,16 @@ Route::middleware('auth')
         Route::get('jadwal-pemeriksaan-laporan', [JadwalPemeriksaanController::class, 'laporan'])->name('jadwal_pemeriksaan.laporan');
         Route::get('jadwal-pemeriksaan-pdf', [JadwalPemeriksaanController::class, 'exportPdf'])->name('jadwal_pemeriksaan.export.pdf');
     });
+
+/*
+|--------------------------------------------------------------------------
+| FRONTEND SISWA (AUTH + ROLE SISWA)
+|--------------------------------------------------------------------------
+*/
+Route::middleware(['auth', 'siswa'])->group(function () {
+    Route::get('/riwayat-uks', [SiswaController::class, 'riwayat'])
+        ->name('siswa.riwayat');
+});
 
 /*
 |--------------------------------------------------------------------------

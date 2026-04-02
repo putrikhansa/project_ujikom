@@ -9,12 +9,14 @@ class Role
 {
     public function handle(Request $request, Closure $next): Response
     {
-        // auth check + role check
-        if (auth()->check() && in_array(auth()->user()->role, ['admin', 'petugas'])) {
+        if (! auth()->check()) {
+            return redirect()->route('login');
+        }
+
+        if (in_array(auth()->user()->role, ['admin', 'petugas'])) {
             return $next($request);
         }
 
         abort(403, 'Unauthorized');
     }
-
 }

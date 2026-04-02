@@ -151,3 +151,82 @@ class RekamMedisController extends Controller
         return Excel::download(new RekamMedisExport($tanggal_awal, $tanggal_akhir), 'laporan-rekam-medis.xlsx');
     }
 }
+/**
+ * API: List semua rekam medis (untuk Flutter)
+ */
+public function apiIndex()
+{
+    $rekam_medis = RekamMedis::with(['siswa.kelas', 'obat', 'user'])
+        ->latest()
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data'    => $rekam_medis,
+        'count'   => $rekam_medis->count(),
+    ]);
+}
+
+/**
+ * API: 10 rekam medis terbaru (untuk dashboard atau list ringan)
+ */
+public function apiTerbaru()
+{
+    $rekam_medis = RekamMedis::with(['siswa.kelas', 'obat', 'user'])
+        ->latest()
+        ->take(10)
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'data'    => $rekam_medis,
+    ]);
+}
+
+/**
+ * API: Simpan rekam medis baru dari Flutter
+ */
+public function apiStore(Request $request)
+{
+    $validated = $request->validate([
+        'siswa_id'   => 'required|exists:siswas,id',
+        'tanggal'    => 'required|date',
+        'keluhan'    => 'required|string|max:500',
+        'tindakan'   => 'nullable|string|max:500',
+        'obat_id'    => 'nullable|exists:obats,id',
+        'status'     => 'required|in:dirawat,pulang,dirujuk', // sesuaikan dengan enum Flutter-mu
+    ]);
+
+    $validated['user_id'] = auth()->id();
+
+    // Logika stok obat & tindakan otomatis (mirip store web-mu)
+    $tindakan = $request->input('tindakan', 'Pemeriksaan');
+
+    if (!empty($validated['obat_id'])) {
+        $obat = Obat::find($validated['obat_id']);
+        if (!$obat || $obat->stok < 1) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Stok obat tidak cukup atau obat tidak ditemukan'
+            ], 422);
+        }
+        $obat->decrement('stok', 1);
+        $tindakan .= " dan diberi 1 {$obat->nama_obat}";
+    }
+
+    $validated['tindakan'] = $tindakan;
+
+    $rekam = RekamMedis::create($validated);
+
+    // Load relasi untuk response lengkap
+    $rekam->load(['siswa.kelas', 'obat', 'user']);
+
+    // Log aktivitas (pakai helper-mu)
+    logAktivitas("Menambahkan rekam medis siswa {$rekam->siswa->nama} via API (Flutter)", 'rekam_medis');
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Rekam medis berhasil disimpan',
+        'data'    => $rekam
+    ], 201);
+}

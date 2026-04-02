@@ -10,9 +10,8 @@ class EdukasiKesehatanController extends Controller
 {
     public function index()
     {
-        $edukasi = EdukasiKesehatan::with(['kategori', 'penulis'])
-            ->latest()
-            ->get();
+        // Ubah 'kategori' menjadi 'kategoriEdukasi' agar sesuai dengan Model
+        $edukasi = EdukasiKesehatan::with('kategoriEdukasi')->latest()->get();
 
         return view('backend.edukasi.index', compact('edukasi'));
     }

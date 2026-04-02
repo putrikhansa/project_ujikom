@@ -172,19 +172,19 @@
     <div class="container" data-aos="fade-up">
         <div class="section-title text-center mb-5">
             <h2>Jadwal Pemeriksaan Kesehatan</h2>
-            <p>Pastikan kamu hadir sesuai jadwal untuk menjaga kesehatan bersama.</p>
+            <p>Jadwal mendatang — 3 jadwal terdekat ditampilkan di halaman pertama</p>
         </div>
 
-        <div class="table-container shadow-sm border-0 rounded-4 overflow-hidden">
+        <div class="card border-0 shadow-sm rounded-4 p-4">
             <div class="table-responsive">
-                <table class="table custom-table m-0">
+                <table id="tabelJadwalKeren" class="table table-hover w-100">
                     <thead>
-                        <tr class="bg-primary text-white">
-                            <th scope="col" class="text-center py-3">No</th>
-                            <th scope="col" class="py-3">Tanggal Pemeriksaan</th>
-                            <th scope="col" class="py-3">Kelas</th>
-                            <th scope="col" class="py-3">Petugas / Pemeriksa</th>
-                            <th scope="col" class="py-3">Keterangan</th>
+                        <tr>
+                            <th class="text-center">No</th>
+                            <th>Tanggal & Status</th>
+                            <th>Kelas</th>
+                            <th>Petugas Medis</th>
+                            <th>Keterangan</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -192,59 +192,70 @@
                             @php
                                 $tanggal = \Carbon\Carbon::parse($item->tanggal);
                                 $isToday = $tanggal->isToday();
-                                // Jadwal dianggap "lewat" jika tanggalnya sebelum hari ini
-                                $isPast = $tanggal->isPast() && !$isToday;
+                                $isTomorrow = $tanggal->isTomorrow();
+                                $isPast = $tanggal->isPast() && !$isToday; // deteksi jadwal lewat
+
+                                $rowClass = $isToday
+                                    ? 'table-active-today'
+                                    : ($isTomorrow
+                                        ? 'table-upcoming-tomorrow'
+                                        : '');
+
+                                $tomorrowText = $isTomorrow ? 'text-success fw-bold' : '';
                             @endphp
 
-                            {{-- Baris akan berwarna kuning jika hari ini, dan abu-abu pudar jika sudah lewat --}}
-                            <tr class="{{ $isToday ? 'table-warning' : ($isPast ? 'bg-light opacity-75' : '') }}">
-                                <td class="text-center fw-bold {{ $isPast ? 'text-muted' : 'text-primary' }}">
-                                    {{ $loop->iteration }}
-                                </td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-calendar3 me-2 {{ $isPast ? 'text-muted' : 'text-info' }}"></i>
-                                        <span
-                                            class="{{ $isPast ? 'text-muted text-decoration-line-through' : 'fw-medium' }}">
-                                            {{ $tanggal->translatedFormat('d F Y') }}
-                                        </span>
+                            {{-- Proteksi: kalau jadwal sudah lewat, skip baris ini --}}
+                            @if ($isPast)
+                                @continue
+                            @endif
 
-                                        @if ($isToday)
-                                            <span class="badge rounded-pill bg-danger ms-2 pulse-animation">Hari
-                                                Ini</span>
-                                        @elseif ($isPast)
-                                            <span class="badge rounded-pill bg-secondary ms-2">Selesai</span>
-                                        @endif
+                            <tr class="{{ $rowClass }}">
+                                <td class="text-center fw-bold">{{ $loop->iteration }}</td>
+                                <td>
+                                    <div class="d-flex flex-column {{ $tomorrowText }}">
+                                        <span>{{ $tanggal->translatedFormat('d F Y') }}</span>
+                                        <div>
+                                            @if ($isToday)
+                                                <span
+                                                    class="badge rounded-pill bg-danger pulse-animation status-tag">Hari
+                                                    Ini</span>
+                                            @elseif ($isTomorrow)
+                                                <span class="badge rounded-pill bg-success status-tag">Besok</span>
+                                            @else
+                                                <span
+                                                    class="badge rounded-pill bg-info-subtle text-info status-tag">Mendatang</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </td>
                                 <td>
                                     <span
-                                        class="badge {{ $isPast ? 'bg-white text-muted border' : 'bg-light text-primary border border-primary' }} px-3 py-2">
+                                        class="badge
+                {{ $isTomorrow ? 'bg-success text-white' : ($isToday ? 'bg-warning text-dark' : 'bg-info-subtle text-info') }}
+                border px-3">
                                         {{ $item->kelas->nama_kelas ?? '-' }}
                                     </span>
                                 </td>
                                 <td>
-                                    <div class="fw-bold {{ $isPast ? 'text-muted' : 'text-dark' }}">
-                                        {{ $item->user->name ?? '-' }}
+                                    <div class="d-flex align-items-center {{ $tomorrowText }}">
+                                        <div
+                                            class="avatar-circle me-2
+                    {{ $isTomorrow ? 'bg-success' : ($isToday ? 'bg-warning' : 'bg-info') }}">
+                                            {{ substr($item->user->name ?? 'U', 0, 1) }}
+                                        </div>
+                                        <span>{{ $item->user->name ?? '-' }}</span>
                                     </div>
-                                    <small class="text-muted">Tim Medis SchoolCare</small>
                                 </td>
-                                <td>
-                                    <span class="{{ $isPast ? 'text-muted' : 'text-muted' }} small">
-                                        {{ $item->keterangan ?? 'Pemeriksaan Rutin' }}
-                                    </span>
+                                <td class="{{ $tomorrowText }}">
+                                    <small>{{ $item->keterangan ?? 'Pemeriksaan Rutin' }}</small>
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="text-center py-5">
-                                    <div class="py-4">
-                                        <img src="https://illustrations.popsy.co/blue/waiting-list.svg" alt="Empty"
-                                            style="width: 180px;" class="mb-3 opacity-75">
-                                        <h5 class="text-dark">Tidak Ada Jadwal Terdekat</h5>
-                                        <p class="text-muted">Semua pemeriksaan telah selesai atau belum dijadwalkan
-                                            kembali.</p>
-                                    </div>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <div class="mb-3"><i class="bi bi-calendar2-x"
+                                            style="font-size: 3rem; opacity: 0.5;"></i></div>
+                                    Belum ada jadwal pemeriksaan mendatang.
                                 </td>
                             </tr>
                         @endforelse
@@ -255,108 +266,293 @@
     </div>
 </section>
 
-{{-- Tambahkan CSS sedikit biar ada efek kedip di badge "Hari Ini" --}}
+<!-- Style & Script tetap sama seperti versi sebelumnya, tapi hapus duplikasi script -->
+<!-- ... (copy style dan script dari versi terakhir yang sudah pakai retrieve: true) ... -->
 <style>
-    .pulse-animation {
-        animation: pulse-red 2s infinite;
+    .card {
+        background: #ffffff;
     }
 
-    @keyframes pulse-red {
+    .table-active-today td {
+        background-color: #fff9db !important;
+        border-left: 5px solid #fd7e14 !important;
+    }
+
+    .table-upcoming-tomorrow td {
+        background-color: #e6ffed !important;
+        border-left: 5px solid #28a745 !important;
+    }
+
+    #tabelJadwalKeren {
+        border-collapse: separate !important;
+        border-spacing: 0 10px !important;
+    }
+
+    #tabelJadwalKeren thead th {
+        background-color: #f1f3f5;
+        color: #495057;
+        font-weight: 700;
+        text-transform: uppercase;
+        font-size: 0.78rem;
+        letter-spacing: 0.4px;
+        border: none;
+        padding: 14px 10px;
+    }
+
+    #tabelJadwalKeren tbody td {
+        padding: 14px 10px;
+        vertical-align: middle;
+        background: #fff;
+        border-top: 1px solid #e9ecef;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .avatar-circle {
+        width: 34px;
+        height: 34px;
+        line-height: 34px;
+        background: #20c997;
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        font-size: 1rem;
+        font-weight: bold;
+    }
+
+    .pulse-animation {
+        animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
         0% {
-            transform: scale(0.95);
-            box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+            transform: scale(0.96);
+            box-shadow: 0 0 0 0 rgba(220, 53, 69, .6);
         }
 
         70% {
-            transform: scale(1);
-            box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+            transform: scale(1.04);
+            box-shadow: 0 0 0 8px rgba(220, 53, 69, 0);
         }
 
         100% {
-            transform: scale(0.95);
+            transform: scale(0.96);
             box-shadow: 0 0 0 0 rgba(220, 53, 69, 0);
         }
     }
 
-    .custom-table thead {
-        background-color: #1977cc;
-        /* Warna utama SchoolCare */
+    .status-tag {
+        font-size: 0.68rem;
+        padding: 0.35em 0.75em;
     }
 </style>
+
+<!-- DataTables -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css">
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
+
+<script>
+    $(document).ready(function() {
+        if (!$.fn.DataTable.isDataTable('#tabelJadwalKeren')) {
+            $('#tabelJadwalKeren').DataTable({
+                retrieve: true, // aman kalau dijalankan ulang
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.13.7/i18n/id.json",
+                    "search": "_INPUT_",
+                    "searchPlaceholder": "Cari jadwal atau kelas...",
+                    "info": "Menampilkan _START_ sampai _END_ dari _TOTAL_ jadwal",
+                    "infoEmpty": "Tidak ada jadwal",
+                    "lengthMenu": "Tampilkan _MENU_ jadwal per halaman",
+                    "emptyTable": "Belum ada jadwal mendatang"
+                },
+                "pageLength": 3,
+                "lengthMenu": [3, 6, 9, 15],
+                "order": [], // ikuti urutan dari controller
+                "dom": '<"d-flex justify-content-between align-items-center mb-3"lf>rt<"d-flex justify-content-between align-items-center mt-4"ip>',
+                "pagingType": "simple_numbers"
+            });
+        }
+    });
+</script>
 <!-- /Services Section -->
+<!-- CSS utama tetap pakai Bootstrap Icons & Swiper -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
-<!-- Appointment Section -->
-{{-- <section id="appointment" class="appointment section">
+<section id="obat" class="py-5 bg-light">
+    <div class="container">
 
-    <!-- Section Title -->
-    <div class="container section-title" data-aos="fade-up">
-        <h2>Appointment</h2>
-        <p>Necessitatibus eius consequatur ex aliquid fuga eum quidem sint consectetur velit</p>
-    </div><!-- End Section Title -->
-
-    <div class="container" data-aos="fade-up" data-aos-delay="100">
-
-        <form action="forms/appointment.php" method="post" role="form" class="php-email-form">
-            <div class="row">
-                <div class="col-md-4 form-group">
-                    <input type="text" name="name" class="form-control" id="name"
-                        placeholder="Your Name" required="">
-                </div>
-                <div class="col-md-4 form-group mt-3 mt-md-0">
-                    <input type="email" class="form-control" name="email" id="email"
-                        placeholder="Your Email" required="">
-                </div>
-                <div class="col-md-4 form-group mt-3 mt-md-0">
-                    <input type="tel" class="form-control" name="phone" id="phone"
-                        placeholder="Your Phone" required="">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <h4 class="fw-bold text-dark mb-1">Stok Obat UKS</h4>
+                <p class="text-muted mb-0 small">Geser untuk lihat lebih banyak</p>
+            </div>
+            <div class="col-md-6 mt-3 mt-md-0">
+                <div class="input-group input-group-lg">
+                    <span class="input-group-text bg-white border-end-0"><i
+                            class="bi bi-search text-muted"></i></span>
+                    <input type="text" id="searchObat" class="form-control border-start-0"
+                        placeholder="Cari nama obat...">
                 </div>
             </div>
-            <div class="row">
-                <div class="col-md-4 form-group mt-3">
-                    <input type="datetime-local" name="date" class="form-control datepicker" id="date"
-                        placeholder="Appointment Date" required="">
-                </div>
-                <div class="col-md-4 form-group mt-3">
-                    <select name="department" id="department" class="form-select" required="">
-                        <option value="">Select Department</option>
-                        <option value="Department 1">Department 1</option>
-                        <option value="Department 2">Department 2</option>
-                        <option value="Department 3">Department 3</option>
-                    </select>
-                </div>
-                <div class="col-md-4 form-group mt-3">
-                    <select name="doctor" id="doctor" class="form-select" required="">
-                        <option value="">Select Doctor</option>
-                        <option value="Doctor 1">Doctor 1</option>
-                        <option value="Doctor 2">Doctor 2</option>
-                        <option value="Doctor 3">Doctor 3</option>
-                    </select>
-                </div>
-            </div>
+        </div>
 
-            <div class="form-group mt-3">
-                <textarea class="form-control" name="message" rows="5" placeholder="Message (Optional)"></textarea>
-            </div>
-            <div class="mt-3">
-                <div class="loading">Loading</div>
-                <div class="error-message"></div>
-                <div class="sent-message">Your appointment request has been sent successfully. Thank you!</div>
-                <div class="text-center"><button type="submit">Make an Appointment</button></div>
-            </div>
-        </form>
+        <div class="swiper mySwiperObat">
+            <div class="swiper-wrapper">
 
+                @forelse($obat as $item)
+                    @php
+                        $expiry = \Carbon\Carbon::parse($item->tanggal_kadaluarsa);
+                        $isExpiredSoon = $expiry->isBefore(now()->addMonths(3));
+                        $isLowStock = $item->stok <= 5 && $item->stok > 0;
+                    @endphp
+
+                    <div class="swiper-slide obat-item">
+                        <div class="card border-0 shadow-sm h-100 {{ $item->stok <= 0 ? 'opacity-50' : '' }}">
+                            <div class="card-body d-flex flex-column p-4">
+
+                                @if ($item->stok <= 0)
+                                    <span class="badge bg-danger mb-3">Stok Habis</span>
+                                @elseif ($isExpiredSoon)
+                                    <span class="badge bg-warning text-dark mb-3">Hampir Kadaluarsa</span>
+                                @elseif ($isLowStock)
+                                    <span class="badge bg-orange text-white mb-3">Stok Menipis</span>
+                                @endif
+
+                                <div class="d-flex justify-content-between mb-3">
+                                    <span class="badge bg-light text-primary fw-normal">
+                                        {{ $item->kategori }}
+                                    </span>
+                                    <i
+                                        class="bi {{ $item->kategori == 'Obat Luar' ? 'bi-droplet' : 'bi-capsule' }} fs-4 text-primary"></i>
+                                </div>
+
+                                <h5 class="card-title fw-semibold mb-2 text-truncate" title="{{ $item->nama_obat }}">
+                                    {{ $item->nama_obat }}
+                                </h5>
+
+                                <p class="card-text text-muted small mb-4 flex-grow-1">
+                                    {{ Str::limit($item->deskripsi ?? '-', 80) }}
+                                </p>
+
+                                <div class="d-flex justify-content-between mt-auto small">
+                                    <div>
+                                        <div class="text-muted">Stok</div>
+                                        <strong class="{{ $item->stok <= 5 ? 'text-danger' : 'text-success' }}">
+                                            {{ $item->stok }} {{ $item->unit ?? 'pcs' }}
+                                        </strong>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="text-muted">Exp</div>
+                                        <strong class="{{ $isExpiredSoon ? 'text-danger' : '' }}">
+                                            {{ $expiry->format('M Y') }}
+                                        </strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <div class="swiper-slide text-center py-5">
+                        <i class="bi bi-capsule fs-1 text-muted mb-3 d-block"></i>
+                        <p class="text-muted">Belum ada data obat</p>
+                    </div>
+                @endforelse
+
+            </div>
+            <div class="swiper-pagination mt-4"></div>
+        </div>
     </div>
+</section>
 
-</section> --}}
-<!-- /Appointment Section -->
+<style>
+    .card {
+        border-radius: 12px;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
 
+    .card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08) !important;
+    }
+
+    .badge.bg-orange {
+        background-color: #fd7e14;
+    }
+
+    .swiper-slide {
+        height: auto !important;
+    }
+
+    .mySwiperObat {
+        padding-bottom: 50px;
+    }
+
+    .swiper-pagination-bullet {
+        background: #adb5bd;
+        opacity: 1;
+    }
+
+    .swiper-pagination-bullet-active {
+        background: #0d6efd;
+        width: 30px;
+        border-radius: 10px;
+    }
+
+    @media (max-width: 576px) {
+        .card-body {
+            padding: 1.25rem;
+        }
+    }
+</style>
+
+<script>
+    // script Swiper & search sama seperti sebelumnya, tapi pagination pakai class default ".swiper-pagination"
+    var swiper = new Swiper('.mySwiperObat', {
+        slidesPerView: 1,
+        spaceBetween: 16,
+        loop: true,
+        autoplay: {
+            delay: 5000,
+            pauseOnMouseEnter: true
+        },
+        pagination: {
+            el: '.swiper-pagination',
+            clickable: true
+        },
+        breakpoints: {
+            576: {
+                slidesPerView: 2
+            },
+            992: {
+                slidesPerView: 3
+            },
+            1200: {
+                slidesPerView: 4
+            }
+        }
+    });
+
+    // search filter (sama seperti sebelumnya)
+    document.getElementById('searchObat').addEventListener('input', function() {
+        const query = this.value.toLowerCase().trim();
+        document.querySelectorAll('.obat-item').forEach(item => {
+            const name = item.querySelector('.card-title')?.textContent.toLowerCase() || '';
+            item.closest('.swiper-slide').style.display = name.includes(query) ? '' : 'none';
+        });
+        swiper.update();
+    });
+</script>
 <!-- Departments Section -->
 <section id="kegiatan" class="departments section">
 
     <!-- Section Title -->
     <div class="container section-title" data-aos="fade-up">
         <h2>Kegiatan UKS</h2>
-        <p>Kegiatan Unit Kesehatan Sekolah dalam mendukung kesehatan dan kebersihan siswa.</p>
+        <p>Kegiatan Unit Kesehatan Sekwolah dalam mendukung kesehatan dan kebersihan siswa.</p>
     </div>
 
     <div class="container" data-aos="fade-up" data-aos-delay="100">
@@ -495,7 +691,7 @@
                                 <a href="#"><i class="bi bi-facebook"></i></a>
                                 <a href="#"><i class="bi bi-instagram"></i></a>
                                 <a href="#"><i class="bi bi-linkedin"></i></a>
-                            </div> 
+                            </div>
                         </div>
                     </div>
                 </div><!-- End Team Member -->
@@ -512,125 +708,87 @@
 
         <!-- Faq Section -->
         <section id="edukasi" class="edukasi section light-background" style="padding: 60px 0;">
-
-            <div class="container section-title" data-aos="fade-up">
-                <h2>Edukasi Kesehatan</h2>
-                <p>Informasi kesehatan untuk membantu siswa menjaga kebersihan dan kesehatan sehari-hari.</p>
+            <div class="container section-title text-center mb-5" data-aos="fade-up">
+                <h2 class="fw-bold" style="color: #2c4964; position: relative; padding-bottom: 15px;">
+                    Edukasi Kesehatan
+                    <span
+                        style="content: ''; position: absolute; display: block; width: 50px; height: 3px; background: #1977cc; bottom: 0; left: 50%; transform: translateX(-50%);"></span>
+                </h2>
+                <p class="text-muted mt-3">Informasi kesehatan untuk membantu siswa menjaga kebersihan dan kesehatan
+                    sehari-hari.</p>
             </div>
 
             <div class="container">
                 <div class="row gy-4">
                     @forelse ($edukasi as $item)
-                        <div class="col-lg-4 col-md-6" data-aos="fade-up" data-aos-delay="100">
-                            <div class="edukasi-card h-100 shadow-sm border-0 bg-white rounded overflow-hidden">
-                                <div class="edukasi-img-container"
-                                    style="height: 200px; overflow: hidden; position: relative;">
-                                    @if ($item->foto)
-                                        <img src="{{ asset('storage/' . $item->foto) }}"
-                                            class="img-fluid w-100 h-100" style="object-fit: cover;"
-                                            alt="{{ $item->judul }}">
-                                    @else
-                                        <div
-                                            class="w-100 h-100 d-flex align-items-center justify-content-center bg-light text-muted">
-                                            <i class="bi bi-image" style="font-size: 3rem;"></i>
-                                        </div>
-                                    @endif
-                                    <div class="edukasi-badge-kategori"
-                                        style="position: absolute; top: 15px; left: 15px;">
-                                        <span
-                                            class="badge bg-primary px-3 py-2 shadow-sm">{{ $item->kategori->nama_kategori ?? 'Umum' }}</span>
-                                    </div>
-                                </div>
+                        <div class="col-lg-4 col-md-6 d-flex align-items-stretch" data-aos="fade-up">
+                            <div
+                                class="edukasi-card shadow-sm border-0 bg-white rounded-4 overflow-hidden d-flex flex-column w-100 transition-hover">
 
-                                <div class="edukasi-body p-4">
-                                    <h3 class="fw-bold h5 mb-3">{{ $item->judul }}</h3>
-                                    <div class="edukasi-text text-muted mb-3" style="font-size: 14px;">
-                                        {!! nl2br(e(Str::limit($item->isi, 120))) !!}
+                                @if ($item->foto)
+                                    <div style="height: 200px; overflow: hidden;">
+                                        <img src="{{ asset('storage/' . $item->foto) }}" class="w-100 h-100"
+                                            style="object-fit: cover;">
                                     </div>
-                                    <a href="#" class="read-more text-decoration-none fw-bold"
-                                        data-bs-toggle="modal" data-bs-target="#modalEdukasi{{ $item->id }}">
+                                @endif
+
+                                <div class="edukasi-body p-4 d-flex flex-column flex-grow-1">
+                                    <span class="badge rounded-pill mb-2 align-self-start"
+                                        style="background-color: #f0f7fe; color: #1977cc;">
+                                        {{ $item->kategoriEdukasi->nama_kategori ?? 'Umum' }}
+                                    </span>
+
+                                    <h3 class="fw-bold h5 mb-2" style="color: #2c4964;">{{ $item->judul }}</h3>
+
+                                    <div class="edukasi-text text-muted mb-4 flex-grow-1"
+                                        style="font-size: 14px; line-height: 1.6;">
+                                        {{ Str::limit(strip_tags($item->isi), 120) }}
+                                    </div>
+
+                                    <a href="{{ route('edukasi.show', $item->id) }}"
+                                        class="read-more text-decoration-none fw-bold mt-auto color-primary">
                                         Baca Selengkapnya <i class="bi bi-arrow-right"></i>
                                     </a>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="modal fade" id="modalEdukasi{{ $item->id }}" tabindex="-1"
-                            aria-hidden="true">
-                            <div class="modal-dialog modal-lg modal-dialog-centered">
-                                <div class="modal-content border-0 shadow-lg">
-                                    <div class="modal-header bg-primary text-white p-4">
-                                        <h5 class="modal-title fw-bold">{{ $item->judul }}</h5>
-                                        <button type="button" class="btn-close btn-close-white"
-                                            data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body p-0">
-                                        @if ($item->foto)
-                                            <img src="{{ asset('storage/' . $item->foto) }}" class="img-fluid w-100"
-                                                style="max-height: 400px; object-fit: cover;"
-                                                alt="{{ $item->judul }}">
-                                        @endif
-
-                                        <div class="p-5">
-                                            <div class="mb-4 d-flex align-items-center text-muted small">
-                                                <span
-                                                    class="badge bg-light text-primary border me-2">{{ $item->kategori->nama_kategori ?? 'Umum' }}</span>
-                                                <span class="me-2">|</span>
-                                                <i class="bi bi-person me-1"></i> {{ $item->penulis->name }}
-                                                <span class="mx-2">|</span>
-                                                <i class="bi bi-calendar-event me-1"></i>
-                                                {{ $item->tanggal_publish ? $item->tanggal_publish->format('d M Y') : '-' }}
-                                            </div>
-
-                                            <div class="content-edukasi"
-                                                style="font-size: 16px; line-height: 1.8; color: #444; text-align: justify;">
-                                                {!! nl2br(e($item->isi)) !!}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer border-0 p-4">
-                                        <button type="button" class="btn btn-secondary px-4 shadow-sm"
-                                            data-bs-dismiss="modal">Tutup</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                     @empty
-                        <div class="col-12 text-center" data-aos="fade-up">
-                            <div class="alert alert-info py-4">
-                                <i class="bi bi-info-circle fs-2 d-block mb-2"></i>
-                                Belum ada materi edukasi kesehatan yang dipublikasikan.
-                            </div>
+                        <div class="col-12 text-center py-5">
+                            <div class="alert alert-info border-0 shadow-sm">Belum ada materi edukasi kesehatan yang
+                                tersedia.</div>
                         </div>
                     @endforelse
                 </div>
+
+                @if (Route::currentRouteName() == 'frontend' && $edukasi->count() > 0)
+                    <div class="text-center mt-5" data-aos="fade-up">
+                        <a href="{{ route('edukasi.indexUser') }}"
+                            class="btn btn-primary px-5 py-3 rounded-pill shadow-sm fw-bold">
+                            Lihat Edukasi Lainnya <i class="bi bi-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                @endif
             </div>
         </section>
 
         <style>
-            .edukasi-card {
+            /* Tambahan biar card-nya lebih responsif saat di-hover */
+            .transition-hover {
                 transition: transform 0.3s ease, box-shadow 0.3s ease;
             }
 
-            .edukasi-card:hover {
+            .transition-hover:hover {
                 transform: translateY(-10px);
-                box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
             }
 
-            .read-more {
+            .color-primary {
                 color: #1977cc;
                 transition: 0.3s;
             }
 
-            .read-more:hover {
-                color: #125592;
-                letter-spacing: 0.5px;
-            }
-
-            .content-edukasi {
-                white-space: pre-line;
-                /* Menjaga spasi antar paragraf tetap rapi */
+            .color-primary:hover {
+                color: #2c4964;
             }
         </style>
         <!-- /Faq Section -->
@@ -821,7 +979,7 @@
         </section><!-- /Testimonials Section --> --}}
 
         <!-- Gallery Section -->
-        <section id="gallery" class="gallery section">
+        {{-- <section id="gallery" class="gallery section">
 
             <!-- Section Title -->
             <div class="container section-title" data-aos="fade-up">
@@ -917,7 +1075,7 @@
 
             </div>
 
-        </section>
+        </section> --}}
         <style>
             /* Hero Styles */
             .hero-bg-wrapper {

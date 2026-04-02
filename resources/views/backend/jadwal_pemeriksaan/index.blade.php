@@ -1,24 +1,5 @@
 @extends('layouts.backend')
 
-@section('styles')
-    <link rel="stylesheet" href="https://cdn.datatables.net/2.3.2/css/dataTables.bootstrap5.css">
-    <style>
-        /* Agar teks keterangan tidak meluber panjang */
-        .text-truncate-custom {
-            max-width: 200px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        /* Style supaya header card terlihat bersih */
-        .card-header.bg-primary h5 {
-            color: #fff !important;
-            margin-bottom: 0;
-        }
-    </style>
-@endsection
-
 @section('content')
     <div class="container-fluid py-4">
         <div class="row">
@@ -49,14 +30,31 @@
                                 </thead>
 
                                 <tbody>
-                                    @foreach ($jadwal_pemeriksaan as $data)
-                                        <tr>
+                                    @forelse ($jadwal_pemeriksaan as $data)
+                                        @php
+                                            $tanggal = \Carbon\Carbon::parse($data->tanggal);
+                                            $isToday = $tanggal->isToday();
+                                            $isPast = $tanggal->isPast() && !$isToday; // sudah lewat
+                                        @endphp
+
+                                        <tr
+                                            class="{{ $isPast ? 'table-secondary text-muted' : ($isToday ? 'table-warning' : '') }}">
                                             <td class="text-center">{{ $loop->iteration }}</td>
                                             <td class="text-center">
-                                                <strong>{{ \Carbon\Carbon::parse($data->tanggal)->format('d/m/Y') }}</strong>
+                                                <strong>{{ $tanggal->format('d/m/Y') }}</strong>
                                                 <br>
-                                                @if (\Carbon\Carbon::parse($data->tanggal)->isToday())
-                                                    <span class="badge bg-danger" style="font-size: 10px;">Hari Ini</span>
+                                                @if ($isToday)
+                                                    <span class="badge bg-danger px-3 py-1 fw-bold"
+                                                        style="font-size: 0.85rem;">Hari Ini</span>
+                                                @elseif ($isPast)
+                                                    <span
+                                                        class="badge bg-danger-subtle text-danger border border-danger px-3 py-1 fw-bold"
+                                                        style="font-size: 0.85rem;">
+                                                        Selesai
+                                                    </span>
+                                                @else
+                                                    <span class="badge bg-info px-3 py-1 fw-bold"
+                                                        style="font-size: 0.85rem;">Mendatang</span>
                                                 @endif
                                             </td>
                                             <td class="text-center">
@@ -64,13 +62,13 @@
                                                     {{ $data->kelas->nama_kelas ?? '-' }}
                                                 </span>
                                             </td>
-                                            <td>
+                                            <td class="{{ $isPast ? 'text-muted' : '' }}">
                                                 <i class="bx bx-user-circle me-1 text-primary"></i>
                                                 {{ $data->user->name ?? '-' }}
                                             </td>
-                                            <td>
+                                            <td class="{{ $isPast ? 'text-decoration-line-through text-muted' : '' }}">
                                                 <div class="text-truncate-custom" title="{{ $data->keterangan }}">
-                                                    {{ $data->keterangan ?? '-' }}
+                                                    {{ $data->keterangan ?? 'Pemeriksaan Rutin' }}
                                                 </div>
                                             </td>
                                             <td class="text-center">
@@ -107,45 +105,73 @@
                                                 </div>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="text-center py-4 text-muted">
+                                                Belum ada data jadwal pemeriksaan.
+                                            </td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
                     </div>
-                    {{-- End Body --}}
                 </div>
             </div>
         </div>
     </div>
 @endsection
+@section('styles')
+    <!-- ... style lama tetap ... -->
 
-@push('scripts')
-    <script src="https://cdn.datatables.net/2.3.2/js/dataTables.js"></script>
-    <script src="https://cdn.datatables.net/2.3.2/js/dataTables.bootstrap5.js"></script>
+    <style>
+        /* Jadwal sudah selesai */
+        tr.table-secondary {
+            background-color: #f8f9fa !important;
+            opacity: 0.85;
+        }
 
-    <script>
-        $(document).ready(function() {
-            if (!$.fn.DataTable.isDataTable('#datajadwal_pemeriksaan')) {
-                $('#datajadwal_pemeriksaan').DataTable({
-                    pageLength: 10,
-                    lengthMenu: [10, 25, 50, 100],
-                    columnDefs: [{
-                        orderable: false,
-                        targets: 5 // Kolom Aksi (index ke-5)
-                    }],
-                    language: {
-                        lengthMenu: "Tampilkan _MENU_ data",
-                        search: "Cari Jadwal:",
-                        zeroRecords: "Data jadwal tidak ditemukan",
-                        info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
-                        infoEmpty: "Tidak ada data tersedia",
-                        paginate: {
-                            next: "Next",
-                            previous: "Prev"
-                        }
-                    }
-                });
-            }
-        });
-    </script>
-@endpush
+        tr.table-secondary td {
+            color: #6c757d !important;
+        }
+
+        /* Jadwal hari ini */
+        tr.table-warning {
+            background-color: #fff3cd !important;
+            border-left: 4px solid #fd7e14 !important;
+        }
+
+        /* Badge lebih kecil & rapi */
+        .badge {
+            font-size: 0.75rem;
+            padding: 0.4em 0.8em;
+        }
+
+        /* Kolom aksi lebih rapi */
+        td.text-center .btn {
+            min-width: 32px;
+            padding: 0;
+        }
+    </style>
+    <style>
+        /* Badge Selesai lebih menonjol */
+        .badge.bg-danger-subtle {
+            background-color: #f8d7da !important;
+            color: #dc3545 !important;
+            font-weight: 700 !important;
+            border: 1px solid #dc3545 !important;
+        }
+
+        /* Baris selesai tetap redup tapi badge tetap terbaca */
+        tr.table-secondary {
+            background-color: #f1f3f5 !important;
+            opacity: 0.9 !important;
+            /* naikkan sedikit biar tidak terlalu redup */
+        }
+
+        tr.table-secondary td {
+            color: #495057 !important;
+            /* teks lebih gelap supaya readable */
+        }
+    </style>
+@endsection
