@@ -24,7 +24,7 @@ class RekamMedisController extends Controller
 
         // Ambil juga data kelas dan obat (biasanya dipakai di form yang sama)
         $kelas = \App\Models\Kelas::all();
-        $obat  = \App\Models\Obat::where('stok', '>', 0)->get();
+        $obat = \App\Models\Obat::where('stok', '>', 0)->get();
 
         // Kirim SEMUA variabel ini ke view
         return view('backend.rekam_medis.create', compact('siswas', 'kelas', 'obat'));
@@ -34,19 +34,19 @@ class RekamMedisController extends Controller
     {
         $validated = $request->validate([
             'siswa_id' => 'required|exists:siswas,id',
-            'tanggal'  => 'required|date',
-            'keluhan'  => 'required|string',
-            'obat_id'  => 'nullable|exists:obats,id',
-            'status'   => 'required|in:Pulang,Kembali Ke Kelas,Di UKS', // Tambahkan Di UKS di sini
+            'tanggal' => 'required|date',
+            'keluhan' => 'required|string',
+            'obat_id' => 'nullable|exists:obats,id',
+            'status' => 'required|in:Pulang,Kembali Ke Kelas,Di UKS', // Tambahkan Di UKS di sini
         ]);
 
         $validated['user_id'] = auth()->id();
         // Memastikan format huruf kapital di awal kata
         $validated['status'] = ucwords(strtolower($request->status));
 
-        $tindakan = "Pemeriksaan";
+        $tindakan = 'Pemeriksaan';
 
-        if (! empty($validated['obat_id'])) {
+        if (!empty($validated['obat_id'])) {
             $obat = Obat::find($validated['obat_id']);
             if ($obat->stok < 1) {
                 return back()->with('error', 'Stok obat habis.');
@@ -58,7 +58,7 @@ class RekamMedisController extends Controller
         $validated['tindakan'] = $tindakan;
 
         // Simpan ke Database
-        $rekam  = RekamMedis::create($validated);
+        $rekam = RekamMedis::create($validated);
 
         // Load relasi siswa agar log tidak error
         $rekam->load('siswa');
@@ -76,9 +76,9 @@ class RekamMedisController extends Controller
     public function edit($id)
     {
         $rekam_medis = RekamMedis::with('siswa.kelas')->findOrFail($id);
-        $siswas      = \App\Models\Siswa::with('kelas')->orderBy('nama', 'asc')->get();
-        $kelas       = \App\Models\Kelas::all();
-        $obat        = \App\Models\Obat::all();
+        $siswas = \App\Models\Siswa::with('kelas')->orderBy('nama', 'asc')->get();
+        $kelas = \App\Models\Kelas::all();
+        $obat = \App\Models\Obat::all();
 
         // 1. TAMBAHKAN BARIS INI untuk mengambil data petugas/user
         $users = User::all();
@@ -93,12 +93,12 @@ class RekamMedisController extends Controller
 
         $data = $request->validate([
             'siswa_id' => 'required|exists:siswas,id',
-            'tanggal'  => 'required|date',
-            'keluhan'  => 'required|string',
+            'tanggal' => 'required|date',
+            'keluhan' => 'required|string',
             'tindakan' => 'required|string',
-            'obat_id'  => 'nullable|exists:obats,id',
-            'user_id'  => 'required|exists:users,id',
-            'status'   => 'required|string',
+            'obat_id' => 'nullable|exists:obats,id',
+            'user_id' => 'required|exists:users,id',
+            'status' => 'required|string',
         ]);
 
         $rekam_medis->update($data);
@@ -111,8 +111,8 @@ class RekamMedisController extends Controller
     public function destroy(string $id)
     {
         $rekam_medis = RekamMedis::findOrFail($id);
-        $nama        = $rekam_medis->siswa->nama;
-        $tanggal     = $rekam_medis->tanggal;
+        $nama = $rekam_medis->siswa->nama;
+        $tanggal = $rekam_medis->tanggal;
 
         $rekam_medis->delete();
 
@@ -124,9 +124,7 @@ class RekamMedisController extends Controller
     public function getSiswaByKelas($kelas_id)
     {
         // Cari siswa berdasarkan kelas_id
-        $siswa = \App\Models\Siswa::where('kelas_id', $kelas_id)
-            ->orderBy('nama', 'asc')
-            ->get();
+        $siswa = \App\Models\Siswa::where('kelas_id', $kelas_id)->orderBy('nama', 'asc')->get();
 
         return response()->json($siswa); // Harus dikirim sebagai JSON
     }
@@ -145,88 +143,95 @@ class RekamMedisController extends Controller
 
     public function exportExcel(Request $request)
     {
-        $tanggal_awal  = $request->tanggal_awal;
+        $tanggal_awal = $request->tanggal_awal;
         $tanggal_akhir = $request->tanggal_akhir;
 
         return Excel::download(new RekamMedisExport($tanggal_awal, $tanggal_akhir), 'laporan-rekam-medis.xlsx');
     }
-}
-/**
- * API: List semua rekam medis (untuk Flutter)
- */
-public function apiIndex()
-{
-    $rekam_medis = RekamMedis::with(['siswa.kelas', 'obat', 'user'])
-        ->latest()
-        ->get();
 
-    return response()->json([
-        'success' => true,
-        'data'    => $rekam_medis,
-        'count'   => $rekam_medis->count(),
-    ]);
-}
+    /**
+     * API: List semua rekam medis (untuk Flutter)
+     */
+    public function apiIndex()
+    {
+        $rekam_medis = RekamMedis::with(['siswa.kelas', 'obat', 'user'])
+            ->latest()
+            ->get();
 
-/**
- * API: 10 rekam medis terbaru (untuk dashboard atau list ringan)
- */
-public function apiTerbaru()
-{
-    $rekam_medis = RekamMedis::with(['siswa.kelas', 'obat', 'user'])
-        ->latest()
-        ->take(10)
-        ->get();
-
-    return response()->json([
-        'success' => true,
-        'data'    => $rekam_medis,
-    ]);
-}
-
-/**
- * API: Simpan rekam medis baru dari Flutter
- */
-public function apiStore(Request $request)
-{
-    $validated = $request->validate([
-        'siswa_id'   => 'required|exists:siswas,id',
-        'tanggal'    => 'required|date',
-        'keluhan'    => 'required|string|max:500',
-        'tindakan'   => 'nullable|string|max:500',
-        'obat_id'    => 'nullable|exists:obats,id',
-        'status'     => 'required|in:dirawat,pulang,dirujuk', // sesuaikan dengan enum Flutter-mu
-    ]);
-
-    $validated['user_id'] = auth()->id();
-
-    // Logika stok obat & tindakan otomatis (mirip store web-mu)
-    $tindakan = $request->input('tindakan', 'Pemeriksaan');
-
-    if (!empty($validated['obat_id'])) {
-        $obat = Obat::find($validated['obat_id']);
-        if (!$obat || $obat->stok < 1) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Stok obat tidak cukup atau obat tidak ditemukan'
-            ], 422);
-        }
-        $obat->decrement('stok', 1);
-        $tindakan .= " dan diberi 1 {$obat->nama_obat}";
+        return response()->json([
+            'success' => true,
+            'data' => $rekam_medis,
+            'count' => $rekam_medis->count(),
+        ]);
     }
 
-    $validated['tindakan'] = $tindakan;
+    /**
+     * API: 10 rekam medis terbaru (untuk dashboard atau list ringan)
+     */
+    public function apiTerbaru()
+    {
+        $rekam_medis = RekamMedis::with(['siswa.kelas', 'obat', 'user'])
+            ->latest()
+            ->take(10)
+            ->get();
 
-    $rekam = RekamMedis::create($validated);
+        return response()->json([
+            'success' => true,
+            'data' => $rekam_medis,
+        ]);
+    }
 
-    // Load relasi untuk response lengkap
-    $rekam->load(['siswa.kelas', 'obat', 'user']);
+    /**
+     * API: Simpan rekam medis baru dari Flutter
+     */
+    public function apiStore(Request $request)
+    {
+        $validated = $request->validate([
+            'siswa_id' => 'required|exists:siswas,id',
+            'tanggal' => 'required|date',
+            'keluhan' => 'required|string|max:500',
+            'tindakan' => 'nullable|string|max:500',
+            'obat_id' => 'nullable|exists:obats,id',
+            'status' => 'required|in:dirawat,pulang,dirujuk', // sesuaikan dengan enum Flutter-mu
+        ]);
 
-    // Log aktivitas (pakai helper-mu)
-    logAktivitas("Menambahkan rekam medis siswa {$rekam->siswa->nama} via API (Flutter)", 'rekam_medis');
+        $validated['user_id'] = auth()->id();
 
-    return response()->json([
-        'success' => true,
-        'message' => 'Rekam medis berhasil disimpan',
-        'data'    => $rekam
-    ], 201);
+        // Logika stok obat & tindakan otomatis (mirip store web-mu)
+        $tindakan = $request->input('tindakan', 'Pemeriksaan');
+
+        if (!empty($validated['obat_id'])) {
+            $obat = Obat::find($validated['obat_id']);
+            if (!$obat || $obat->stok < 1) {
+                return response()->json(
+                    [
+                        'success' => false,
+                        'message' => 'Stok obat tidak cukup atau obat tidak ditemukan',
+                    ],
+                    422,
+                );
+            }
+            $obat->decrement('stok', 1);
+            $tindakan .= " dan diberi 1 {$obat->nama_obat}";
+        }
+
+        $validated['tindakan'] = $tindakan;
+
+        $rekam = RekamMedis::create($validated);
+
+        // Load relasi untuk response lengkap
+        $rekam->load(['siswa.kelas', 'obat', 'user']);
+
+        // Log aktivitas (pakai helper-mu)
+        logAktivitas("Menambahkan rekam medis siswa {$rekam->siswa->nama} via API (Flutter)", 'rekam_medis');
+
+        return response()->json(
+            [
+                'success' => true,
+                'message' => 'Rekam medis berhasil disimpan',
+                'data' => $rekam,
+            ],
+            201,
+        );
+    }
 }

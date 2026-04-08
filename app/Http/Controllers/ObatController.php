@@ -21,12 +21,12 @@ class ObatController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nama_obat'          => 'required',
-            'kategori'           => 'required',
-            'stok'               => 'required|numeric',
+            'nama_obat' => 'required',
+            'kategori' => 'required',
+            'stok' => 'required|numeric',
             'tanggal_kadaluarsa' => 'required|date',
-            'unit'               => 'required',
-            'deskripsi'          => 'required|string',
+            'unit' => 'required',
+            'deskripsi' => 'required|string',
         ]);
 
         $obat = Obat::create($request->all());
@@ -51,23 +51,23 @@ class ObatController extends Controller
     public function update(Request $request, string $id)
     {
         $request->validate([
-            'nama_obat'          => 'required',
-            'kategori'           => 'required',
-            'stok'               => 'required|numeric',
+            'nama_obat' => 'required',
+            'kategori' => 'required',
+            'stok' => 'required|numeric',
             'tanggal_kadaluarsa' => 'required|date',
-            'unit'               => 'required',
-            'deskripsi'          => 'required|string',
+            'unit' => 'required',
+            'deskripsi' => 'required|string',
         ]);
 
         $obat = Obat::findOrFail($id);
 
         $obat->update([
-            'nama_obat'          => $request->nama_obat,
-            'kategori'           => $request->kategori,
-            'stok'               => $request->stok,
+            'nama_obat' => $request->nama_obat,
+            'kategori' => $request->kategori,
+            'stok' => $request->stok,
             'tanggal_kadaluarsa' => $request->tanggal_kadaluarsa,
-            'unit'               => $request->unit,
-            'deskripsi'          => $request->deskripsi,
+            'unit' => $request->unit,
+            'deskripsi' => $request->deskripsi,
         ]);
 
         logAktivitas("Mengedit data obat bernama {$obat->nama_obat}", 'obat');
@@ -85,5 +85,11 @@ class ObatController extends Controller
         logAktivitas("Menghapus obat bernama {$nama}", 'obat');
 
         return redirect()->route('backend.obat.index')->with('success', 'Data berhasil dihapus');
+    }
+    public function apiIndex()
+    {
+        $obat = Obat::latest()->get();
+
+        return response()->json($obat, 200);
     }
 }

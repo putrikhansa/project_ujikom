@@ -74,30 +74,38 @@
 
 <!-- About Section -->
 <section id="about" class="about section py-5">
-    <div class="container" data-aos="fade-up">
+    <div class="container">
         <div class="row gy-4 align-items-center">
 
-            <div class="col-lg-5 text-center" data-aos="fade-right">
+            <!-- KIRI -->
+            <div class="col-lg-5 text-center" data-aos="zoom-in" data-aos-duration="1000">
                 <div class="about-img-container shadow-sm p-4 bg-white rounded-4">
                     <img src="{{ asset('assets/frontend/img/WhatsApp Image 2025-07-08 at 20.22.56_949ce290.jpg') }}"
                         class="img-fluid" style="max-height: 300px;" alt="Logo UKS">
+
                     <div class="mt-3">
-                        <h4 class="text-primary fw-bold mb-0">SchoolCare</h4>
+                        <h4 class="text-primary fw-bold mb-0 move-text">SchoolCare</h4>
                         <p class="text-muted small">DIGITAL HEALTHCARE</p>
                     </div>
                 </div>
             </div>
 
-            <div class="col-lg-7 content" data-aos="fade-left">
-                <h3 class="fw-bold text-dark">Tentang UKS</h3>
-                <p class="text-muted mb-4">
+            <!-- KANAN -->
+            <div class="col-lg-7 content">
+                <h3 class="fw-bold text-dark" data-aos="fade-up" data-aos-delay="100">
+                    Tentang UKS
+                </h3>
+
+                <p class="text-muted mb-4" data-aos="fade-up" data-aos-delay="300">
                     Unit Kesehatan Sekolah (UKS) adalah layanan kesehatan strategis yang bertujuan membantu siswa
                     menjaga kesehatan fisik dan mental. Melalui <strong>SchoolCare</strong>, semua proses kini lebih
                     modern dan terstruktur.
                 </p>
 
                 <div class="about-features">
-                    <div class="d-flex align-items-center mb-3 p-3 rounded-3 bg-light-blue shadow-sm">
+
+                    <div class="d-flex align-items-center mb-3 p-3 rounded-3 bg-light-blue shadow-sm feature-card"
+                        data-aos="fade-right" data-aos-delay="400">
                         <div class="feature-icon-small me-3">
                             <i class="fa-solid fa-vial-circle-check text-primary"></i>
                         </div>
@@ -107,7 +115,8 @@
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center mb-3 p-3 rounded-3 bg-light-green shadow-sm">
+                    <div class="d-flex align-items-center mb-3 p-3 rounded-3 bg-light-green shadow-sm feature-card"
+                        data-aos="fade-right" data-aos-delay="600">
                         <div class="feature-icon-small me-3">
                             <i class="fa-solid fa-pump-medical text-success"></i>
                         </div>
@@ -118,7 +127,8 @@
                         </div>
                     </div>
 
-                    <div class="d-flex align-items-center p-3 rounded-3 bg-light-red shadow-sm">
+                    <div class="d-flex align-items-center p-3 rounded-3 bg-light-red shadow-sm feature-card"
+                        data-aos="fade-right" data-aos-delay="800">
                         <div class="feature-icon-small me-3">
                             <i class="fa-solid fa-heart-circle-check text-danger"></i>
                         </div>
@@ -128,6 +138,7 @@
                                 interaktif.</small>
                         </div>
                     </div>
+
                 </div>
             </div>
 
@@ -385,21 +396,31 @@
 <section id="obat" class="py-5 bg-light">
     <div class="container">
 
-        <div class="row align-items-center mb-4">
-            <div class="col-md-6">
-                <h4 class="fw-bold text-dark mb-1">Stok Obat UKS</h4>
-                <p class="text-muted mb-0 small">Geser untuk lihat lebih banyak</p>
-            </div>
-            <div class="col-md-6 mt-3 mt-md-0">
-                <div class="input-group input-group-lg">
-                    <span class="input-group-text bg-white border-end-0"><i
-                            class="bi bi-search text-muted"></i></span>
-                    <input type="text" id="searchObat" class="form-control border-start-0"
-                        placeholder="Cari nama obat...">
+        <!-- Header Card -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h4 class="fw-bold text-dark mb-1">Stok Obat UKS</h4>
+                        <p class="text-muted mb-0 small">Geser untuk lihat lebih banyak</p>
+                    </div>
+
+                    <div class="col-md-6 mt-3 mt-md-0">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="bi bi-search text-muted"></i>
+                            </span>
+                            <input type="text" id="searchObat" class="form-control border-start-0"
+                                placeholder="Cari nama obat...">
+                        </div>
+                    </div>
                 </div>
+
             </div>
         </div>
 
+        <!-- Swiper -->
         <div class="swiper mySwiperObat">
             <div class="swiper-wrapper">
 
@@ -411,7 +432,8 @@
                     @endphp
 
                     <div class="swiper-slide obat-item">
-                        <div class="card border-0 shadow-sm h-100 {{ $item->stok <= 0 ? 'opacity-50' : '' }}">
+                        <div
+                            class="card border-0 shadow-sm h-100 rounded-4 {{ $item->stok <= 0 ? 'opacity-50' : '' }}">
                             <div class="card-body d-flex flex-column p-4">
 
                                 @if ($item->stok <= 0)
@@ -445,6 +467,7 @@
                                             {{ $item->stok }} {{ $item->unit ?? 'pcs' }}
                                         </strong>
                                     </div>
+
                                     <div class="text-end">
                                         <div class="text-muted">Exp</div>
                                         <strong class="{{ $isExpiredSoon ? 'text-danger' : '' }}">
@@ -452,22 +475,27 @@
                                         </strong>
                                     </div>
                                 </div>
+
                             </div>
                         </div>
                     </div>
+
                 @empty
-                    <div class="swiper-slide text-center py-5">
-                        <i class="bi bi-capsule fs-1 text-muted mb-3 d-block"></i>
-                        <p class="text-muted">Belum ada data obat</p>
+                    <div class="swiper-slide">
+                        <div class="card border-0 shadow-sm text-center py-5 rounded-4">
+                            <i class="bi bi-capsule fs-1 text-muted mb-3 d-block"></i>
+                            <p class="text-muted mb-0">Belum ada data obat</p>
+                        </div>
                     </div>
                 @endforelse
 
             </div>
+
             <div class="swiper-pagination mt-4"></div>
         </div>
+
     </div>
 </section>
-
 <style>
     .card {
         border-radius: 12px;
@@ -508,7 +536,6 @@
         }
     }
 </style>
-
 <script>
     // script Swiper & search sama seperti sebelumnya, tapi pagination pakai class default ".swiper-pagination"
     var swiper = new Swiper('.mySwiperObat', {
@@ -547,113 +574,175 @@
     });
 </script>
 <!-- Departments Section -->
-<section id="kegiatan" class="departments section">
+<section id="kegiatan" class="kegiatan section py-5">
 
-    <!-- Section Title -->
-    <div class="container section-title" data-aos="fade-up">
-        <h2>Kegiatan UKS</h2>
-        <p>Kegiatan Unit Kesehatan Sekwolah dalam mendukung kesehatan dan kebersihan siswa.</p>
+    <style>
+        .kegiatan {
+            background: radial-gradient(circle at top, #e3f2fd, #f8f9fa);
+        }
+
+        /* NAV CONTAINER */
+        .nav-modern {
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(15px);
+            border-radius: 50px;
+            justify-content: center;
+            flex-wrap: wrap;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        }
+
+        /* NAV BUTTON */
+        .nav-modern .nav-link {
+            border-radius: 50px;
+            padding: 10px 18px;
+            color: #555;
+            font-size: 14px;
+            transition: 0.3s;
+            position: relative;
+        }
+
+        .nav-modern .nav-link.active {
+            color: #fff;
+            background: linear-gradient(135deg, #0d6efd, #ff4081);
+            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
+        }
+
+        /* CARD */
+        .kegiatan-card {
+            margin-top: 40px;
+            padding: 35px;
+            border-radius: 25px;
+            background: #fff;
+            position: relative;
+            overflow: hidden;
+            transition: 0.4s;
+        }
+
+        /* GLOW BORDER */
+        .kegiatan-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            padding: 2px;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #0d6efd, #ff4081);
+            -webkit-mask:
+                linear-gradient(#fff 0 0) content-box,
+                linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+
+        /* HOVER EFFECT */
+        .kegiatan-card:hover {
+            transform: translateY(-10px) scale(1.01);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        /* ICON */
+        .icon-modern {
+            width: 60px;
+            height: 60px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #0d6efd, #ff4081);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+            margin-bottom: 15px;
+        }
+
+        /* TEXT */
+        .section-title h2 {
+            font-weight: 800;
+            background: linear-gradient(135deg, #0d6efd, #ff4081);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* ANIMASI */
+        .tab-pane {
+            animation: zoomFade 0.4s ease;
+        }
+
+        @keyframes zoomFade {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+
+    <div class="container text-center mb-4">
+        <h2 class="fw-bold">Kegiatan UKS</h2>
+        <p class="text-muted">Aktivitas kesehatan sekolah yang modern & aktif 💙</p>
     </div>
 
-    <div class="container" data-aos="fade-up" data-aos-delay="100">
+    <div class="container">
 
-        <div class="row">
-            <div class="col-lg-3">
-                <ul class="nav nav-tabs flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active show" data-bs-toggle="tab" href="#kegiatan-tab-1">Pemeriksaan
-                            Kesehatan</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#kegiatan-tab-2">Penyuluhan Kesehatan</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#kegiatan-tab-3">Pemberian Obat Ringan</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#kegiatan-tab-4">Lomba Kebersihan</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-bs-toggle="tab" href="#kegiatan-tab-5">UKS Siaga</a>
-                    </li>
-                </ul>
+        <!-- NAV MODERN -->
+        <ul class="nav nav-modern mb-4">
+            <li><a class="nav-link active" data-bs-toggle="tab" href="#k1">🩺 Pemeriksaan</a></li>
+            <li><a class="nav-link" data-bs-toggle="tab" href="#k2">📢 Penyuluhan</a></li>
+            <li><a class="nav-link" data-bs-toggle="tab" href="#k3">💊 Obat</a></li>
+            <li><a class="nav-link" data-bs-toggle="tab" href="#k4">🧹 Kebersihan</a></li>
+            <li><a class="nav-link" data-bs-toggle="tab" href="#k5">🚑 Siaga</a></li>
+        </ul>
+
+        <!-- CONTENT -->
+        <div class="tab-content">
+
+            <div class="tab-pane fade show active" id="k1">
+                <div class="kegiatan-card">
+                    <div class="icon-modern">🩺</div>
+                    <h4>Pemeriksaan Kesehatan</h4>
+                    <p class="text-muted">Cek rutin kondisi siswa</p>
+                    <p>Meliputi tinggi badan, berat badan, tekanan darah, dan kebersihan diri secara berkala.</p>
+                </div>
             </div>
 
-            <div class="col-lg-9 mt-4 mt-lg-0">
-                <div class="tab-content">
+            <div class="tab-pane fade" id="k2">
+                <div class="kegiatan-card">
+                    <div class="icon-modern">📢</div>
+                    <h4>Penyuluhan</h4>
+                    <p class="text-muted">Edukasi kesehatan</p>
+                    <p>Materi tentang gizi, olahraga, kebersihan, dan kesehatan mental siswa.</p>
+                </div>
+            </div>
 
-                    <div class="tab-pane active show" id="kegiatan-tab-1">
-                        <div class="row">
-                            <div class="col-lg-8 details order-2 order-lg-1">
-                                <h3>Pemeriksaan Kesehatan Berkala</h3>
-                                <p class="fst-italic">Melakukan pemeriksaan dasar kepada siswa secara rutin.</p>
-                                <p>Kegiatan ini meliputi pengecekan tinggi badan, berat badan, tekanan darah,
-                                    kebersihan diri, dan keluhan kesehatan ringan. Tujuannya untuk memantau kondisi
-                                    kesehatan siswa sejak dini.
-                                </p>
-                            </div>
-                            <div class="col-lg-4 text-center order-1 order-lg-2">
-                                <img src="{{ asset('assets/frontend/img/ukaes.jpeg') }}" class="img-fluid">
-                            </div>
-                        </div>
-                    </div>
+            <div class="tab-pane fade" id="k3">
+                <div class="kegiatan-card">
+                    <div class="icon-modern">💊</div>
+                    <h4>Obat Ringan</h4>
+                    <p class="text-muted">Penanganan cepat</p>
+                    <p>Membantu siswa yang mengalami sakit ringan selama kegiatan sekolah.</p>
+                </div>
+            </div>
 
-                    <div class="tab-pane" id="kegiatan-tab-2">
-                        <div class="row">
-                            <div class="col-lg-8 details order-2 order-lg-1">
-                                <h3>Penyuluhan Kesehatan</h3>
-                                <p class="fst-italic">Edukasi kesehatan untuk siswa secara berkala.</p>
-                                <p>Kegiatan ini dapat berupa penyuluhan kesehatan gigi, pentingnya olahraga,
-                                    gizi seimbang, kebersihan diri, hingga kesehatan mental siswa.</p>
-                            </div>
-                            <div class="col-lg-4 text-center order-1 order-lg-2">
-                                <img src="https://via.placeholder.com/300x250" class="img-fluid">
-                            </div>
-                        </div>
-                    </div>
+            <div class="tab-pane fade" id="k4">
+                <div class="kegiatan-card">
+                    <div class="icon-modern">🧹</div>
+                    <h4>Kebersihan</h4>
+                    <p class="text-muted">Lingkungan sehat</p>
+                    <p>Mendorong siswa menjaga kebersihan kelas dan lingkungan sekolah.</p>
+                </div>
+            </div>
 
-                    <div class="tab-pane" id="kegiatan-tab-3">
-                        <div class="row">
-                            <div class="col-lg-8 details order-2 order-lg-1">
-                                <h3>Pemberian Obat Ringan</h3>
-                                <p class="fst-italic">Pelayanan obat sederhana untuk siswa yang sakit ringan.</p>
-                                <p>Kegiatan ini untuk membantu siswa yang mengalami sakit kepala,
-                                    pusing, mual, luka gores, atau kelelahan ringan selama berada di sekolah.</p>
-                            </div>
-                            <div class="col-lg-4 text-center order-1 order-lg-2">
-                                <img src="https://via.placeholder.com/300x250" class="img-fluid">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="tab-pane" id="kegiatan-tab-4">
-                        <div class="row">
-                            <div class="col-lg-8 details order-2 order-lg-1">
-                                <h3>Lomba Kebersihan Kelas</h3>
-                                <p class="fst-italic">Upaya meningkatkan kebersihan lingkungan sekolah.</p>
-                                <p>Lomba kebersihan kelas diadakan rutin untuk menumbuhkan
-                                    kedisiplinan, tanggung jawab, dan kesadaran menjaga lingkungan bersih dan sehat.</p>
-                            </div>
-                            <div class="col-lg-4 text-center order-1 order-lg-2">
-                                <img src="https://via.placeholder.com/300x250" class="img-fluid">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="tab-pane" id="kegiatan-tab-5">
-                        <div class="row">
-                            <div class="col-lg-8 details order-2 order-lg-1">
-                                <h3>UKS Siaga</h3>
-                                <p class="fst-italic">UKS siap siaga membantu siswa kapanpun dibutuhkan.</p>
-                                <p>UKS Siaga adalah kegiatan piket atau petugas yang siap mengatasi
-                                    gangguan kesehatan ringan dan mendampingi siswa jika harus dirujuk.</p>
-                            </div>
-                            <div class="col-lg-4 text-center order-1 order-lg-2">
-                                <img src="https://via.placeholder.com/300x250" class="img-fluid">
-                            </div>
-                        </div>
-                    </div>
-
+            <div class="tab-pane fade" id="k5">
+                <div class="kegiatan-card">
+                    <div class="icon-modern">🚑</div>
+                    <h4>UKS Siaga</h4>
+                    <p class="text-muted">Siap setiap saat</p>
+                    <p>Tim UKS siap membantu siswa dalam kondisi darurat ringan.</p>
                 </div>
             </div>
 
@@ -661,7 +750,7 @@
 
     </div>
 
-</section>
+</section>      
 <!-- /Departments Section -->
 
 <!-- Doctors Section -->
